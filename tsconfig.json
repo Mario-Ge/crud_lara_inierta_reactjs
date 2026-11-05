@@ -22,5 +22,9 @@
 
         "types": ["vite/client", "react", "react-dom"]
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"]
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.tsx",
+        "resources/js/**/*.d.ts"
+    ]
 }

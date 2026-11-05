@@ -24,6 +24,7 @@
         "@inertiajs/react": "^3.10.0",
         "@inertiajs/vite": "^3.10.0",
         "react": "^19.3.1",
-        "react-dom": "^19.3.1"
+        "react-dom": "^19.3.1",
+        "sweetalert2": "^11.26.25"
     }
 }

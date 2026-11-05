@@ -3,8 +3,9 @@ import { Head, Link, router } from "@inertiajs/react";
 import { useState, type FormEvent } from "react";
 
 import ProductTable from "../../components/products/ProductTable";
+import LoadingButton from "../../components/common/LoadingButton";
 
-import { confirmDeleteProduct, showDeleteError } from "../../lib/sweetalert";
+import { showDeleteError } from "../../lib/sweetalert";
 
 import type { CategoryOption } from "../../types/category";
 import type { PaginatedData } from "../../types/pagination";
@@ -26,21 +27,30 @@ export default function Index({
     categories,
     filters,
 }: ProductIndexProps) {
+    // Search and category filter states.
     const [search, setSearch] = useState(filters.search);
 
     const [categoryId, setCategoryId] = useState(
         filters.category_id?.toString() ?? "",
     );
 
+    // Track product deletion state.
     const [deletingProductId, setDeletingProductId] = useState<number | null>(
         null,
     );
+
+    // Track search and filter request state.
+    const [filtering, setFiltering] = useState(false);
 
     /**
      * Handle product search and category filter.
      */
     function handleFilterSubmit(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
+
+        if (filtering) {
+            return;
+        }
 
         const query: {
             search?: string;
@@ -61,6 +71,14 @@ export default function Index({
             preserveState: true,
             preserveScroll: true,
             replace: true,
+
+            onStart: () => {
+                setFiltering(true);
+            },
+
+            onFinish: () => {
+                setFiltering(false);
+            },
         });
     }
 
@@ -68,6 +86,10 @@ export default function Index({
      * Reset search and category filters.
      */
     function handleResetFilters(): void {
+        if (filtering) {
+            return;
+        }
+
         setSearch("");
         setCategoryId("");
 
@@ -78,21 +100,25 @@ export default function Index({
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
+
+                onStart: () => {
+                    setFiltering(true);
+                },
+
+                onFinish: () => {
+                    setFiltering(false);
+                },
             },
         );
     }
 
     /**
-     * Confirm and delete a product.
+     * Delete a product after confirmation.
+     *
+     * Confirmation is handled by ConfirmDialog.tsx.
      */
-    async function handleDeleteProduct(product: Product): Promise<void> {
+    function handleDeleteProduct(product: Product): void {
         if (deletingProductId !== null) {
-            return;
-        }
-
-        const confirmed = await confirmDeleteProduct(product.name);
-
-        if (!confirmed) {
             return;
         }
 
@@ -175,7 +201,8 @@ export default function Index({
                                             setSearch(event.target.value)
                                         }
                                         placeholder="Cari nama produk atau SKU..."
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-900"
+                                        disabled={filtering}
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-900"
                                     />
                                 </div>
 
@@ -194,7 +221,8 @@ export default function Index({
                                         onChange={(event) =>
                                             setCategoryId(event.target.value)
                                         }
-                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-900"
+                                        disabled={filtering}
+                                        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-indigo-400 dark:focus:ring-indigo-900"
                                     >
                                         <option value="">Semua Kategori</option>
 
@@ -212,17 +240,20 @@ export default function Index({
 
                             {/* Filter Buttons */}
                             <div className="mt-5 flex flex-wrap gap-3">
-                                <button
+                                <LoadingButton
                                     type="submit"
-                                    className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                                    loading={filtering}
+                                    loadingText="Menerapkan..."
+                                    className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     Terapkan Filter
-                                </button>
+                                </LoadingButton>
 
                                 <button
                                     type="button"
                                     onClick={handleResetFilters}
-                                    className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                    disabled={filtering}
+                                    className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                                 >
                                     Reset
                                 </button>

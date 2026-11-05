@@ -1,5 +1,12 @@
 import Swal from "sweetalert2";
 
+interface ConfirmActionOptions {
+    title: string;
+    message: string;
+    confirmButtonText?: string;
+    cancelButtonText?: string;
+}
+
 /**
  * Get SweetAlert2 colors based on the active application theme.
  */
@@ -19,8 +26,6 @@ function getAlertThemeColors(): {
 
 /**
  * Show a success notification.
- *
- * @param message - Success message received from Laravel.
  */
 export function showSuccessNotification(message: string): void {
     void Swal.fire({
@@ -41,8 +46,6 @@ export function showSuccessNotification(message: string): void {
 
 /**
  * Show an error notification.
- *
- * @param message - Safe error message to display.
  */
 export function showErrorNotification(message: string): void {
     void Swal.fire({
@@ -58,24 +61,23 @@ export function showErrorNotification(message: string): void {
 }
 
 /**
- * Show a confirmation dialog before deleting a product.
- *
- * @param productName - Name of the product to delete.
- * @returns True when the user confirms, otherwise false.
+ * Display a reusable confirmation dialog.
  */
-export async function confirmDeleteProduct(
-    productName: string,
+export async function confirmAction(
+    options: ConfirmActionOptions,
 ): Promise<boolean> {
     const result = await Swal.fire({
         ...getAlertThemeColors(),
 
-        title: "Hapus Produk?",
-        text: `Produk "${productName}" akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
+        title: options.title,
+        text: options.message,
         icon: "warning",
 
         showCancelButton: true,
-        confirmButtonText: "Ya, Hapus",
-        cancelButtonText: "Batal",
+
+        confirmButtonText: options.confirmButtonText ?? "Ya, Lanjutkan",
+
+        cancelButtonText: options.cancelButtonText ?? "Batal",
 
         confirmButtonColor: "#dc2626",
         cancelButtonColor: "#64748b",
@@ -85,6 +87,20 @@ export async function confirmDeleteProduct(
     });
 
     return result.isConfirmed;
+}
+
+/**
+ * Keep the existing product deletion confirmation helper.
+ */
+export async function confirmDeleteProduct(
+    productName: string,
+): Promise<boolean> {
+    return confirmAction({
+        title: "Hapus Produk?",
+        message: `Produk "${productName}" akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`,
+        confirmButtonText: "Ya, Hapus",
+        cancelButtonText: "Batal",
+    });
 }
 
 /**

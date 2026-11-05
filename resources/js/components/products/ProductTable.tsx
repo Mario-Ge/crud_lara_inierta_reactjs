@@ -1,5 +1,7 @@
 import { Link } from "@inertiajs/react";
 
+import ConfirmDialog from "../common/ConfirmDialog";
+
 import type { Product } from "../../types/product";
 
 interface ProductTableProps {
@@ -128,18 +130,23 @@ export default function ProductTable({
                                         Edit
                                     </Link>
 
-                                    {/* Delete Button */}
-                                    <button
-                                        type="button"
-                                        onClick={() => onDelete(product)}
+                                    {/* Delete Confirmation */}
+                                    <ConfirmDialog
+                                        title="Hapus Produk?"
+                                        message={`Produk "${product.name}" akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.`}
+                                        confirmButtonText="Ya, Hapus"
+                                        cancelButtonText="Batal"
+                                        onConfirm={() => onDelete(product)}
+                                        loading={
+                                            deletingProductId === product.id
+                                        }
+                                        loadingText="Menghapus..."
                                         disabled={deletingProductId !== null}
-                                        aria-label={`Hapus ${product.name}`}
+                                        ariaLabel={`Hapus ${product.name}`}
                                         className="inline-flex rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
                                     >
-                                        {deletingProductId === product.id
-                                            ? "Menghapus..."
-                                            : "Hapus"}
-                                    </button>
+                                        Hapus
+                                    </ConfirmDialog>
                                 </div>
                             </td>
                         </tr>

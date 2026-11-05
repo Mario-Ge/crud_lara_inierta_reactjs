@@ -3,6 +3,7 @@ import type { FormEventHandler } from "react";
 
 import type { CategoryOption } from "../../types/category";
 import type { ProductFormData } from "../../types/product";
+import LoadingButton from "../common/LoadingButton";
 
 interface ProductFormProps {
     categories: CategoryOption[];
@@ -302,13 +303,14 @@ export default function ProductForm({
 
             {/* Form Actions */}
             <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-700">
-                <button
+                <LoadingButton
                     type="submit"
-                    disabled={processing}
+                    loading={processing}
+                    loadingText="Menyimpan..."
                     className="rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {processing ? "Menyimpan..." : "Simpan Produk"}
-                </button>
+                    Simpan Produk
+                </LoadingButton>
             </div>
         </form>
     );

@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import ProductTable from "../../components/products/ProductTable";
 import LoadingButton from "../../components/common/LoadingButton";
 
-import { showDeleteError } from "../../lib/sweetalert";
+import { showDeleteError, showErrorNotification } from "../../lib/sweetalert";
 
 import type { CategoryOption } from "../../types/category";
 import type { PaginatedData } from "../../types/pagination";
@@ -38,6 +38,9 @@ export default function Index({
     const [deletingProductId, setDeletingProductId] = useState<number | null>(
         null,
     );
+
+    // Track product being added to the cart.
+    const [addingProductId, setAddingProductId] = useState<number | null>(null);
 
     // Track search and filter request state.
     const [filtering, setFiltering] = useState(false);
@@ -137,6 +140,62 @@ export default function Index({
                 setDeletingProductId(null);
             },
         });
+    }
+
+    /**
+     * Add a product to the shopping cart.
+     */
+    function handleAddToCart(product: Product): void {
+        // Prevent duplicate requests while another product is being added.
+        if (addingProductId !== null) {
+            return;
+        }
+
+        setAddingProductId(product.id);
+
+        router.post(
+            "/cart",
+            {
+                product_id: product.id,
+                quantity: 1,
+            },
+            {
+                preserveScroll: true,
+
+                // Handle validation errors returned by Laravel.
+                onError: (errors) => {
+                    const firstError = Object.values(errors).find(
+                        (message): message is string =>
+                            typeof message === "string" &&
+                            message.trim() !== "",
+                    );
+
+                    showErrorNotification(
+                        firstError ??
+                            `Gagal menambahkan ${product.name} ke keranjang.`,
+                    );
+                },
+
+                // Handle HTTP exceptions.
+                onHttpException: () => {
+                    showErrorNotification(
+                        "Terjadi kesalahan pada server. Silakan coba lagi.",
+                    );
+                },
+
+                // Handle network errors.
+                onNetworkError: () => {
+                    showErrorNotification(
+                        "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
+                    );
+                },
+
+                // Reset loading state after the request finishes.
+                onFinish: () => {
+                    setAddingProductId(null);
+                },
+            },
+        );
     }
 
     return (
@@ -277,6 +336,8 @@ export default function Index({
                             products={products.data}
                             onDelete={handleDeleteProduct}
                             deletingProductId={deletingProductId}
+                            onAddToCart={handleAddToCart}
+                            addingProductId={addingProductId}
                         />
 
                         {/* Pagination Information */}
@@ -316,6 +377,7 @@ export default function Index({
                                         return (
                                             <span
                                                 key={index}
+                                                aria-disabled="true"
                                                 className={linkClassName}
                                             >
                                                 {label}
